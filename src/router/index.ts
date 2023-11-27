@@ -1,6 +1,7 @@
 import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AudioView from '../views/AudioView.vue'
+import MessagesView from "@/views/MessagesView.vue";
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -12,6 +13,11 @@ const routes: Array<RouteRecordRaw> = [
         path: '/audio',
         name: 'audio',
         component: AudioView
+    },
+    {
+        path: '/messages',
+        name: 'messages',
+        component: MessagesView
     },
 ]
 
