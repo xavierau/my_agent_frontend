@@ -42,7 +42,7 @@ const messageSubmit = (payload: SubmitMessagePayload) => {
   const temp_message: Message = {
     id: generateUUID(),
     role: "assistant",
-    content: "<i class=\"fa fa-spinner fa-spin fa-3x fa-fw\"></i>Loading.."
+    content: "<p style='vertical-align: middle'><i class=\"fa fa-spinner fa-spin fa-3x fa-fw\"></i>Thinking...</p>"
   }
 
   messages.value.push(user_message)

@@ -116,6 +116,7 @@ const submitMessage = () => {
       width: 80%;
       border-left: none;
       border-right: none;
+      border-radius: 0;
     }
 
     button.select-file-button {
