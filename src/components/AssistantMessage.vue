@@ -41,17 +41,32 @@ const convertContent = computed(() => converter.makeHtml(props.message.content))
 
 </template>
 
-<style scoped lang="scss">
+<style  lang="scss">
 .assistant-message {
   max-width: 80%;
   min-height: 10px;
 
   .message-container {
     display: inline-block;
-    padding: 5px;
+    padding: 10px;
     border-radius: 10px;
     background-color: lightgrey;
 
+    img {
+      max-width: 100% ;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+      border: 1px solid #ddd;
+      background: lightgray;
+      th, td{
+        border: 1px solid #ddd;
+        padding: 5px !important;
+
+      }
+    }
   }
 }
 
@@ -59,9 +74,4 @@ h1 {
   font-size: 1.2em;
 }
 
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-  border: 1px solid #ddd;
-}
 </style>

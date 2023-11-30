@@ -2,6 +2,7 @@ export interface Message {
     role: string
     id: string;
     content: string;
+    urls?: Array<string>;
 }
 
 export interface DBMessage {
@@ -15,4 +16,12 @@ export interface DBMessage {
     },
     "role": string,
     "updated_at": Date,
+}
+
+
+export interface SubmitMessagePayload {
+    message:string,
+    file:File|null,
+    fileName:string|null,
+    filePreview:string|null,
 }

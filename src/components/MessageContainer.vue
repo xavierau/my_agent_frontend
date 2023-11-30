@@ -3,7 +3,7 @@
 import {Component, nextTick, ref} from "vue";
 import MyMessage from "@/components/MyMessage.vue";
 import AssistantMessage from "@/components/AssistantMessage.vue";
-import {DBMessage, Message} from "@/types/message";
+import {DBMessage, Message, SubmitMessagePayload} from "@/types/message";
 import MessageInput from "@/components/MessageInput.vue";
 import {generateUUID, scrollToBottom} from "@/utils";
 import axios from "axios";
@@ -14,75 +14,90 @@ const messages = ref<Array<Message>>([])
 const messagesContainer = ref<HTMLElement | null>(null)
 
 const components = {
-    MyMessage,
-    AssistantMessage
+  MyMessage,
+  AssistantMessage
 }
 
 axios.get(config.host + '/messages?page=1&limit=25&session_id:1212a')
     .then(({data}) => {
-        messages.value = data.map((m: DBMessage): Message => {
-            return {
-                id: m.message.id,
-                role: m.role,
-                content: Array.isArray(m.message.content) ? m.message.content[0].text : m.message.content,
-            }
-        }).reverse()
+      messages.value = data.map((m: DBMessage): Message => {
+        return {
+          id: m.message.id,
+          role: m.role,
+          content: Array.isArray(m.message.content) ? m.message.content[0].text : m.message.content,
+        }
+      }).reverse()
 
-        nextTick(() => scrollToBottom(messagesContainer.value))
+      nextTick(() => scrollToBottom(messagesContainer.value))
     })
 
-const messageSubmit = (payload: string) => {
+const messageSubmit = (payload: SubmitMessagePayload) => {
 
-    const data = {
-        content: payload
-    }
-    const user_message: Message = {
-        id: generateUUID(),
-        role: "user",
-        content: payload
-    }
+  const user_message: Message = {
+    id: generateUUID(),
+    role: "user",
+    content: payload.message,
+    urls:payload.filePreview?[payload.filePreview]:[]
+  }
+  const temp_message: Message = {
+    id: generateUUID(),
+    role: "assistant",
+    content: "<i class=\"fa fa-spinner fa-spin fa-3x fa-fw\"></i>Loading.."
+  }
 
-    const temp_message: Message = {
-        id: generateUUID(),
-        role: "assistant",
-        content: "<i class=\"fa fa-spinner fa-spin fa-3x fa-fw\"></i>Loading.."
-    }
+  messages.value.push(user_message)
+  messages.value.push(temp_message)
+  nextTick(() => scrollToBottom(messagesContainer.value))
 
-    messages.value.push(user_message)
-    messages.value.push(temp_message)
+  const success = (response:axios.AxiosResponse) => {
+    const data = response.data
+    messages.value.pop()
+    messages.value.push({
+      id: data.id,
+      role: "assistant",
+      content: data.message,
+    } as Message)
+
     nextTick(() => scrollToBottom(messagesContainer.value))
+  }
 
+  if (payload.file) {
+    const formData = new FormData();
+    formData.append('file', payload.file);
+    formData.append('content', payload.message);
+    formData.append('require_audio', "0");
 
-    axios.post(config.host + '/call', data)
-        .then(({data}) => {
-            messages.value.pop()
-            messages.value.push({
-                id: data.id,
-                role: "assistant",
-                content: data.message
-            } as Message)
-
-            nextTick(() => scrollToBottom(messagesContainer.value))
-        })
+    axios.post(config.host + '/call_with_file', formData)
+        .then(success)
+  }else{
+    const data = {
+      content: payload.message,
+      require_audio:false
+    }
+    axios.post(config.host + '/call', data,{headers:{
+        "Content-Type":"application/json"
+    }})
+      .then(success)
+  }
 }
 const getComponent = (role: string): Component => {
-    return role === "user" ?
-        components['MyMessage'] :
-        components['AssistantMessage']
+  return role === "user" ?
+      components['MyMessage'] :
+      components['AssistantMessage']
 }
 </script>
 
 <template>
-    <div class="messages-container" ref="messagesContainer">
-        <div class="messages">
-            <component v-for="msg in messages"
-                       :key="msg.id"
-                       :is="getComponent(msg.role)"
-                       :message="msg"></component>
-        </div>
-
-        <MessageInput @submit="messageSubmit"></MessageInput>
+  <div class="messages-container" ref="messagesContainer">
+    <div class="messages">
+      <component v-for="msg in messages"
+                 :key="msg.id"
+                 :is="getComponent(msg.role)"
+                 :message="msg"></component>
     </div>
+
+    <MessageInput @submit="messageSubmit"></MessageInput>
+  </div>
 
 </template>
 
